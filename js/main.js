@@ -1,6 +1,7 @@
-require("babel-polyfill");
+import "babel-polyfill";
 import Hapi from 'hapi';
 import routes from './routes';
+import anxpro from './anxpro';
 
 const server = Hapi.server({
    port: 3000,
@@ -10,13 +11,16 @@ const server = Hapi.server({
 server.route(routes);
 
 const init = async () => {
-   await server.register({
-      plugin: require('hapi-pino'),
-      options: {
-         prettyPrint: true,
-         logEvents: ['response']
-      }
-   });
+   await server.register([
+      {
+         plugin: require('hapi-pino'),
+         options: {
+            prettyPrint: true,
+            logEvents: ['response']
+         }
+      },
+      anxpro
+   ]);
 
    await server.start();
    console.log(`Server running at: ${server.info.uri}`);
