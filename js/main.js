@@ -1,7 +1,9 @@
 import "babel-polyfill";
+import './mockws';
 import Hapi from 'hapi';
 import routes from './routes';
 import anxpro from './anxpro';
+import bitfinex from './bitfinex';
 
 const server = Hapi.server({
    port: 3000,
@@ -16,10 +18,10 @@ const init = async () => {
          plugin: require('hapi-pino'),
          options: {
             prettyPrint: true,
-            logEvents: ['response']
+            logEvents: false
          }
       },
-      anxpro
+      bitfinex
    ]);
 
    await server.start();
