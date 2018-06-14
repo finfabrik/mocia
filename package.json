@@ -2,7 +2,7 @@
   "name": "mocia",
   "version": "1.0.0",
   "description": "NodeJS mock REST API server",
-  "main": "server.js",
+  "main": "dist/main.js",
   "scripts": {
     "prestart": "npm run -s build",
     "start": "node dist/main.js",
