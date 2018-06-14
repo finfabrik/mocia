@@ -1,0 +1,6 @@
+{
+  "server": {
+    "api": "API_PORT",
+    "ws": "WS_PORT"
+  }
+}
