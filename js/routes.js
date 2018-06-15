@@ -1,11 +1,3 @@
-const routes = [
-   {
-      method: 'GET',
-      path: '/{name}',
-      handler: (request, h) => {
-         return `Hello, ${encodeURIComponent(request.params.name)}!`;
-      }
-   }
-];
+const routes = [];
 
 export default routes;

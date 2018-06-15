@@ -14,10 +14,7 @@ const mongoUrl = config.util.getEnv('MONGO_URL') || 'mongodb://' + mongoHost + '
 
 //<====== Mongo client addons - to be put into seperate module
 const hapiPort = config.get('server.api');
-const server = Hapi.server({
-   port: hapiPort,
-   host: 'localhost'
-});
+const server = Hapi.server({port: hapiPort});
 
 server.route(routes);
 
