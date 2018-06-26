@@ -5,35 +5,17 @@ import routes from './routes';
 import anxpro from './anxpro';
 import bitfinex from './bitfinex';
 import config from 'config';
+import MongoUtils from './mongoutils';
 
-//=====> Mongo Client Addons - to be put into seperate module
-const MongoClient = require('mongodb').MongoClient;
-const mongoHost = config.get('mongodb.host');
-const mongoPort = config.get('mongodb.port');
-const mongoUrl = config.util.getEnv('MONGO_URL') || 'mongodb://' + mongoHost + ':' + mongoPort;
-
-//<====== Mongo client addons - to be put into seperate module
 const hapiPort = config.get('server.api');
 const server = Hapi.server({port: hapiPort});
 
 server.route(routes);
 
-//========> Mongo Connection handlers
 let client;
-const initMongoConnection = async () => {
-    client = await MongoClient.connect(mongoUrl);
-    console.log("Database connection established");
-}
-const closeMongoConnection = () => {
-    if(client) {
-        client.close();
-        console.log("Connection to database closed");
-    }
-}
-//<======== Mongo Connection Handlers
 
 const init = async () => {
-    await initMongoConnection();
+    client = await MongoUtils.initMongoConnection();
     await server.register([
         {
             plugin: require('hapi-pino'),
@@ -56,7 +38,7 @@ const init = async () => {
 
 process.on('unhandledRejection', (err) => {
    console.log(err);
-   closeMongoConnection();
+   MongoUtils.closeMongoConnection(client);
    process.exit(1);
 });
 

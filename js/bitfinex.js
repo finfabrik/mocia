@@ -1,53 +1,12 @@
 import "babel-polyfill";
 
-//======> Data Population work around Helpers
 const dbName = "response_test";
-var data = require('./../test_data/data.json');
-var collections = ['test_1', 'test_2', 'test_3', 'test_4' ,'test_5' ,'test_6'];
-function customInsertMany(db){
-    collections.forEach(element => {
-        db.collection(element).insert(data[element], {ordered: false});
-    });
-}
-function customDropMany(db){
-    collections.forEach(element => {
-        db.dropCollection(element);
-    });
-}
-//<======= Data Population work around helpers
-
 
 const bitfinexPlugin = {
    name: 'bitfinexPlugin',
    version: '1.0.0',
    register: async function (server, options) {
       server.route([   
-
-        //==========> Additional routes to handle data population
-        {
-            method: 'GET',
-            path: '/v1/addData',
-            handler: (request, h) => {
-                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-                let db = options['dbClient'].db(dbName);
-                customInsertMany(db);
-                let res = "success";
-                return res;
-            }
-        },
-        {
-            method: 'GET',
-            path: '/v1/removeData',
-            handler: (request, h) => {
-                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-                let db = options['dbClient'].db(dbName);
-                customDropMany(db);
-                let res = "success";
-                return res;
-            }
-        },
-        //<========== Additional routes to help data population
-        
         {
             method: 'GET',
             path: '/v1/symbols',
