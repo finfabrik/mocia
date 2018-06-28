@@ -7,27 +7,25 @@ import bitfinex from './bitfinex';
 import config from 'config';
 import MongoUtils from './mongoutils';
 
+
 const hapiPort = config.get('server.api');
 const server = Hapi.server({port: hapiPort});
 
 server.route(routes);
 
-let client;
-
 const init = async () => {
-    client = await MongoUtils.initMongoConnection();
+    await MongoUtils.initMongoConnection();
     await server.register([
         {
             plugin: require('hapi-pino'),
             options: {
-            prettyPrint: true,
-            logEvents: false
+                prettyPrint: true,
+                logEvents: false
             }
         },
         {
             plugin: bitfinex,
             options: {
-                dbClient: client
             }
         }
     ]);
@@ -38,7 +36,7 @@ const init = async () => {
 
 process.on('unhandledRejection', (err) => {
    console.log(err);
-   MongoUtils.closeMongoConnection(client);
+   MongoUtils.closeMongoConnection();
    process.exit(1);
 });
 

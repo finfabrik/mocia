@@ -1,22 +1,29 @@
 import config from 'config';
+import Mongoose from 'mongoose';
 
-const MongoClient = require('mongodb').MongoClient;
 const mongoHost = config.get('mongodb.host');
 const mongoPort = config.get('mongodb.port');
-const mongoUrl = config.util.getEnv('MONGO_URL') || 'mongodb://' + mongoHost + ':' + mongoPort;
+const mongoUrl = process.env.MONGO_URL || 'mongodb://' + mongoHost + ':' + mongoPort;
 
-let client;
+const dbname = 'response_test';
+
+const options = {
+    auth: { authSource: "admin" },
+    user: config.get('mongodb.username'),
+    pass: config.get('mongodb.pwd')
+};
 
 module.exports = {
     initMongoConnection : async () => {
-        let client = await MongoClient.connect(mongoUrl);
-        console.log("Database connection established");
-        return client;
+        Mongoose.connect(mongoUrl + '/response_test', options);
+        Mongoose.connection.once('open', () => {
+            console.log('Connected to mongodb');
+        }).on('error', () => new Error('failed to connect mongodb'));
+     
     },
-    closeMongoConnection : (client) => {
-        if(client) {
-            client.close();
-            console.log("Connection to database closed");
-        }
+    closeMongoConnection : () => {
+        Mongoose.disconnect(() => {
+            console.log("Disconnected from database")
+        }).on('error', () => new Error('failed to disconnect properly'));
     }
 };

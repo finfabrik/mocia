@@ -2,5 +2,9 @@
   "server": {
     "api": "API_PORT",
     "ws": "WS_PORT"
+  },
+  "mongodb": {
+    "username": "MONGO_USER",
+    "pwd": "MONGO_PWD"
   }
 }

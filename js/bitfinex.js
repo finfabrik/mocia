@@ -1,6 +1,7 @@
 import "babel-polyfill";
+import Mongoose from 'mongoose';
 
-const dbName = "response_test";
+let testSchema = new Mongoose.Schema({ response : Object});
 
 const bitfinexPlugin = {
    name: 'bitfinexPlugin',
@@ -12,9 +13,10 @@ const bitfinexPlugin = {
             path: '/v1/symbols',
             handler: (request, h) => {
                 request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-                let db = options['dbClient'].db(dbName);
-                let id = request["headers"]["test_id"];
-                let res = db.collection('test_' + id).find().toArray();
+                let response = Mongoose.model('test_' + request["headers"]["test_id"], testSchema);
+                let res = response.find({}, function (err, result) {
+                    if (err) return console.log(err);
+                });
                 return res;
             }
          },
