@@ -13,10 +13,10 @@ const bitfinexPlugin = {
             path: '/v1/symbols',
             handler: (request, h) => {
                 request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-                let response = Mongoose.model('test_' + request["headers"]["test_id"], testSchema);
-                let res = response.find({}, function (err, result) {
-                    if (err) return console.log(err);
-                });
+                let res = [
+                    "btcusd",
+                    "ethusd"
+                ];
                 return res;
             }
          },
@@ -32,9 +32,16 @@ const bitfinexPlugin = {
                   "initial_margin":"30.0",
                   "minimum_margin":"15.0",
                   "maximum_order_size":"2000.0",
-                  "minimum_order_size":"0.01",
-                  "expiration":"NA"
-               }];
+                  "minimum_order_size":"0.01"
+               },
+               {
+                "pair":"ethusd",
+                "price_precision":5,
+                "initial_margin":"30.0",
+                "minimum_margin":"15.0",
+                "maximum_order_size":"2000.0",
+                "minimum_order_size":"0.01"
+             }];
                return res;
             }
          },
@@ -79,22 +86,8 @@ const bitfinexPlugin = {
             handler: (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
                let res = {
-                  "id":448411154,
-                  "symbol":"btcusd",
-                  "exchange":"bitfinex",
-                  "price":"0.01",
-                  "avg_execution_price":"0.0",
-                  "side":"buy",
-                  "type":"exchange limit",
-                  "timestamp":"1444272165.252370982",
+                  "id":12345,
                   "is_live":true,
-                  "is_cancelled":false,
-                  "is_hidden":false,
-                  "was_forced":false,
-                  "original_amount":"0.01",
-                  "remaining_amount":"0.01",
-                  "executed_amount":"0.0",
-                  "order_id":448364250
                };
                return res;
             }
@@ -105,8 +98,9 @@ const bitfinexPlugin = {
             path: '/v1/order/status',
             handler: (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+               //console.log(request);
                let res = {
-                  "id":448411154,
+                  "id": 12345,
                   "symbol":"btcusd",
                   "exchange":null,
                   "price":"1",
@@ -114,17 +108,31 @@ const bitfinexPlugin = {
                   "side":"buy",
                   "type":"exchange limit",
                   "timestamp":"1444276570.0",
-                  "is_live":false,
-                  "is_cancelled":true,
+                  "is_live":true,
+                  "is_cancelled":false,
                   "is_hidden":false,
                   "oco_order":null,
                   "was_forced":false,
-                  "original_amount":"0.01",
+                  "original_amount":"3.0",
                   "remaining_amount":"0.0",
-                  "executed_amount":"0.01"
+                  "executed_amount":"3.0"
                };
                return res;
             }
+         },
+
+         {
+            method: 'POST',
+            path: '/v1/order/cancel',
+            handler: (request, h) => {
+                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+                let res = {
+                    "is_cancelled" : true
+                };
+                return res;
+            }
+
+
          }
       ]);
    }

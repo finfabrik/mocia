@@ -4,6 +4,7 @@ import Hapi from 'hapi';
 import routes from './routes';
 import anxpro from './anxpro';
 import bitfinex from './bitfinex';
+import quoinex from './quoinex';
 import config from 'config';
 import MongoUtils from './mongoutils';
 
@@ -11,7 +12,12 @@ import MongoUtils from './mongoutils';
 const hapiPort = config.get('server.api');
 const server = Hapi.server({port: hapiPort});
 
-server.route(routes);
+server.events.on('request', (request, event, tags) => {
+    if(tags['error']){
+        console.error("Possible incorrect path : " + request.path );
+        console.error('Req type : ' + request.method);   
+    }
+});
 
 const init = async () => {
     await MongoUtils.initMongoConnection();
@@ -25,6 +31,11 @@ const init = async () => {
         },
         {
             plugin: bitfinex,
+            options: {
+            }
+        },
+        {
+            plugin: quoinex,
             options: {
             }
         }
