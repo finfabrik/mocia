@@ -54,7 +54,6 @@ const bitfinexPlugin = {
                let res = {
                   "withdraw":{
                      "BTC": "0.0005",
-                     "LTC": 0,
                      "ETH": 0
                   }
                };
