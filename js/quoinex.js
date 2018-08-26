@@ -1,5 +1,4 @@
 import "babel-polyfill";
-import Mongoose, { Schema } from 'mongoose';
 import MongoUtils from './mongoutils';
 
 const quoinexPlugin = {
@@ -40,13 +39,17 @@ const quoinexPlugin = {
                     "id": id,
                     "order_type": request.payload['order']['order_type'],
                     "side": request.payload['order']['side'],
-                    "status": "filled"
+                    "status": "partially_filled",
+                    "updated": "false",
+                    "quantity": request.payload['order']['quantity'],
+                    "filled_quantity": String(parseFloat(request.payload['order']['quantity'])/2)
                 };
                 let order = new MongoUtils.quoinexOrder(res);
                 res["status"] = order.save((err, order) => {
                     if(err) return "rejected";
                     else return "live";
                 });
+                res["filled_quantity"] = "0.0";
                 return res;
             }
          },
@@ -54,11 +57,21 @@ const quoinexPlugin = {
          {
             method: 'GET',
             path: '/orders',
-            handler: (request, h) => {
-                let res = MongoUtils.quoinexOrder.find((err, orders) => {
+            handler: async (request, h) => {
+                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+                let orderList = await MongoUtils.quoinexOrder.find({ status : {$nin :["cancelled", "rejected"]}, updated : false},(err, orders) => {
                     if(!err) return orders;
-                    else return [];
+                    else return {};
                 });
+                MongoUtils.quoinexOrder.updateMany({status : "filled", updated : false}, { $set: { updated: true }} ,() => {
+                    return null;
+                });
+                let res = {
+                    "models" : orderList,
+                    "current_page": 1,
+                    "total_pages": 1
+                };
+                console.log(orderList);
                 return res;
             }
          },
@@ -66,12 +79,16 @@ const quoinexPlugin = {
          {
             method: 'GET',
             path: '/orders/{id}',
-            handler: (request, h) => {
+            handler: async (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-               let res = MongoUtils.quoinexOrder.findOne({id : request.params.id}, (err, order) => {
-                   if(!err) return order;
-                   else return {};
+               let res = await MongoUtils.quoinexOrder.findOne({id : request.params.id}, (err, order) => {
+                   return order;
                });
+               let original_amount = new MongoUtils.quoinexOrder(res).quantity;
+               MongoUtils.quoinexOrder.findOneAndUpdate({id : request.params.id},{ $set: { status: "filled", filled_quantity: original_amount }} ,(err, cancelledOrder) => {
+                if(!err) return cancelledOrder;
+                else return {};
+            });
                return res;
             }
          },
@@ -79,9 +96,9 @@ const quoinexPlugin = {
          {
             method: 'PUT',
             path: '/orders/{id}/cancel',
-            handler: (request, h) => {
+            handler: async (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-               let res = MongoUtils.quoinexOrder.findOneAndUpdate({id : request.params.id},{ $set: { status: 'cancelled' }} ,(err, cancelledOrder) => {
+               let res = await MongoUtils.quoinexOrder.findOneAndUpdate({id : request.params.id},{ $set: { status: 'cancelled' }} ,(err, cancelledOrder) => {
                    if(!err) return cancelledOrder;
                    else return {};
                });

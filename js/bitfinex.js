@@ -1,7 +1,7 @@
 import "babel-polyfill";
 import Mongoose from 'mongoose';
+import MongoUtils from './mongoutils';
 
-let testSchema = new Mongoose.Schema({ response : Object});
 
 const bitfinexPlugin = {
    name: 'bitfinexPlugin',
@@ -73,7 +73,12 @@ const bitfinexPlugin = {
                      "pairs":"BTC",
                      "maker_fees":"0.1",
                      "taker_fees":"0.2"
-                  }]
+                  },
+                  {
+                    "pairs":"ETH",
+                    "maker_fees":"0.1",
+                    "taker_fees":"0.2"
+                 }]
                }];
                return res;
             }
@@ -84,10 +89,28 @@ const bitfinexPlugin = {
             path: '/v1/order/new',
             handler: (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+               let id = Math.floor(Date.now()/10);
+               let amount = parseFloat(request.payload["amount"]);
+               let partialAmount = amount/2;
                let res = {
-                  "id":12345,
-                  "is_live":true,
+                  "id": id,
+                  "is_live": false,
+                  "is_cancelled": false,
+                  "original_amount": String(amount),
+                  "remaining_amount": String(partialAmount),
+                  "executed_amount": String(partialAmount),
+                  "side":"buy",
+                  "type":"exchange limit",
+                  "symbol":"btcusd",
+                  "timestamp":"1444272165.252370982",
                };
+               let order = new MongoUtils.bitfinexOrder(res);
+               order.save((err, order) => {
+                   if(err) console.log("Error saving bitfinex order : " + err);
+               });
+               res["is_live"] = true;
+               res["remaining_amount"] = String(amount);
+               res["executed_amount"] = "0.0";
                return res;
             }
          },
@@ -95,27 +118,16 @@ const bitfinexPlugin = {
          {
             method: 'POST',
             path: '/v1/order/status',
-            handler: (request, h) => {
+            handler: async (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-               //console.log(request);
-               let res = {
-                  "id": 12345,
-                  "symbol":"btcusd",
-                  "exchange":null,
-                  "price":"1",
-                  "avg_execution_price":"1",
-                  "side":"buy",
-                  "type":"exchange limit",
-                  "timestamp":"1444276570.0",
-                  "is_live":true,
-                  "is_cancelled":false,
-                  "is_hidden":false,
-                  "oco_order":null,
-                  "was_forced":false,
-                  "original_amount":"3.0",
-                  "remaining_amount":"0.0",
-                  "executed_amount":"3.0"
-               };
+               let id = request.payload["order_id"];
+               let res = await MongoUtils.bitfinexOrder.findOne({id : id}, (err, order) => {
+                   return order;
+               });
+               let original_amount = new MongoUtils.bitfinexOrder(res).getOriginalAmount();
+               await MongoUtils.bitfinexOrder.findOneAndUpdate({id : id},{ $set: { remaining_amount: "0.0", executed_amount: original_amount }} ,(err, order) => {
+                   return {};
+               });
                return res;
             }
          },
@@ -123,15 +135,15 @@ const bitfinexPlugin = {
          {
             method: 'POST',
             path: '/v1/order/cancel',
-            handler: (request, h) => {
+            handler: async (request, h) => {
                 request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
-                let res = {
-                    "is_cancelled" : true
-                };
+                let id = request.payload["order_id"];
+                let res = await MongoUtils.bitfinexOrder.findOneAndUpdate({id : id},{ $set: { is_live: false, is_cancelled: true }} ,(err, cancelledOrder) => {
+                    if(!err) return cancelledOrder;
+                    else return {};
+                });
                 return res;
             }
-
-
          }
       ]);
    }
