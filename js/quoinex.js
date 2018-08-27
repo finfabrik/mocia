@@ -42,7 +42,7 @@ const quoinexPlugin = {
                     "status": "partially_filled",
                     "updated": "false",
                     "quantity": request.payload['order']['quantity'],
-                    "filled_quantity": String(parseFloat(request.payload['order']['quantity'])/2)
+                    "filled_quantity": String(parseFloat(request.payload['order']['quantity']) * Math.random())
                 };
                 let order = new MongoUtils.quoinexOrder(res);
                 res["status"] = order.save((err, order) => {
@@ -104,9 +104,69 @@ const quoinexPlugin = {
                });
                return res;
             }
+         },
+
+         {
+            method: 'GET',
+            path: '/fiat_accounts',
+            handler: async (request, h) => {
+               request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+               let res = [
+                {
+                  "id": 22,
+                  "currency": "USD",
+                  "balance": "3000.50"
+                }
+              ];
+               return res;
+            }
+        },
+
+        {
+            method: 'GET',
+            path: '/accounts/balance',
+            handler: (request, h) => {
+               request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+               let res = [
+                   {
+                       "currency" : "BTC",
+                       "balance" : "20.85"
+                   },{
+                       "currency" : "ETH",
+                       "balance" : "60.95"
+                   },{
+                       "currency" : "USD",
+                        "balance" : "3000.50"
+                    }
+               ];
+               return res;
+            }
+         },
+
+         {
+             method: 'GET',
+             path: '/crypto_accounts',
+             handler: (request, h) => {
+                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+                let res = [
+                    {
+                        "id": 11,
+                        "balance": "20.85",
+                        "currency": "BTC"
+                    },
+                    {
+                        "id": 21,
+                        "balance": "60.95",
+                        "currency": "ETH"
+                    }
+                ];
+                return res;
+             }
          }
       ]);
    }
 };
 
 export default quoinexPlugin;
+
+

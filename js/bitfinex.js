@@ -91,7 +91,7 @@ const bitfinexPlugin = {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
                let id = Math.floor(Date.now()/10);
                let amount = parseFloat(request.payload["amount"]);
-               let partialAmount = amount/2;
+               let partialAmount = amount*Math.random();
                let res = {
                   "id": id,
                   "is_live": false,
@@ -144,6 +144,35 @@ const bitfinexPlugin = {
                 });
                 return res;
             }
+         },
+
+         {
+             method: 'POST',
+             path: '/v1/balances',
+             handler: (request, h) => {
+                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
+                let res = [
+                    {
+                        "type" : "deposit",
+                        "currency" : "btc",
+                        "amount" : "20.20",
+                        "available" : "20.20"
+                    },
+                    {
+                        "type" : "deposit",
+                        "currency" : "eth",
+                        "amount" : "70.50",
+                        "available" : "50.20"
+                    },
+                    {
+                        "type" : "deposit",
+                        "currency" : "usd",
+                        "amount" : "2000.20",
+                        "available" : "1800.20"
+                    }
+                ];
+                return res;
+             }
          }
       ]);
    }
