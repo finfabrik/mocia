@@ -6,19 +6,21 @@ const quoinexPlugin = {
    version: '1.0.0',
    register: async function (server, options) {
       server.route([   
-        {
+        {   
             method: 'GET',
             path: '/products',
             handler: (request, h) => {
                 request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
                 let res = [
                     {
+                        "id": 1,
                         "currency": "USD",
                         "currency_pair_code": "BTCUSD",
                         "quoted_currency": "USD",
                         "base_currency": "BTC"
                     },
                     {
+                        "id": 2,
                         "currency": "USD",
                         "currency_pair_code": "ETHUSD",
                         "quoted_currency": "USD",
@@ -32,7 +34,7 @@ const quoinexPlugin = {
          {
             method: 'POST',
             path: '/orders/',
-            handler: (request, h) => {
+            handler: async (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
                let id = Math.floor(Date.now()/10);
                let res = {
@@ -42,14 +44,35 @@ const quoinexPlugin = {
                     "status": "partially_filled",
                     "updated": "false",
                     "quantity": request.payload['order']['quantity'],
-                    "filled_quantity": String(parseFloat(request.payload['order']['quantity']) * Math.random())
+                    "filled_quantity": String(parseFloat(request.payload['order']['quantity']) * Math.random()),
+                    "disc_quantity": "0.0",
+                    "iceberg_total_quantity": "0.0",
+                    "price": "500.0",
+                    "created_at": 1462123639,
+                    "updated_at": 1462123639,
+                    "leverage_level": 1,
+                    "source_exchange": "QUOINE",
+                    "product_id": request.payload['order']['product_id'],
+                    "product_code": "CASH",
+                    "funding_currency": "USD",
+                    "currency_pair_code": "BTCUSD",
+                    "order_fee": "0.0",
+                    "margin_used": "0.0",
+                    "margin_interest": "0.0"
                 };
+
                 let order = new MongoUtils.quoinexOrder(res);
-                res["status"] = order.save((err, order) => {
-                    if(err) return "rejected";
-                    else return "live";
-                });
+
+                try {
+                    await order.save().catch((err) => { throw err;});
+
+                    res.status = 'live';
+                } catch (err) {
+                    res.status = 'rejected';
+                }
+
                 res["filled_quantity"] = "0.0";
+
                 return res;
             }
          },
@@ -66,11 +89,13 @@ const quoinexPlugin = {
                 MongoUtils.quoinexOrder.updateMany({status : "filled", updated : false}, { $set: { updated: true }} ,() => {
                     return null;
                 });
+
                 let res = {
                     "models" : orderList,
                     "current_page": 1,
                     "total_pages": 1
                 };
+
                 console.log(orderList);
                 return res;
             }
@@ -84,11 +109,14 @@ const quoinexPlugin = {
                let res = await MongoUtils.quoinexOrder.findOne({id : request.params.id}, (err, order) => {
                    return order;
                });
+
                let original_amount = new MongoUtils.quoinexOrder(res).quantity;
+               
                MongoUtils.quoinexOrder.findOneAndUpdate({id : request.params.id},{ $set: { status: "filled", filled_quantity: original_amount }} ,(err, cancelledOrder) => {
                 if(!err) return cancelledOrder;
                 else return {};
             });
+
                return res;
             }
          },
@@ -99,10 +127,16 @@ const quoinexPlugin = {
             handler: async (request, h) => {
                request.logger.info('Endpoint => %s: %s', request.path, JSON.stringify(request.payload));
                let res = await MongoUtils.quoinexOrder.findOneAndUpdate({id : request.params.id},{ $set: { status: 'cancelled' }} ,(err, cancelledOrder) => {
-                   if(!err) return cancelledOrder;
-                   else return {};
+                   if(!err) {
+                       return cancelledOrder;
+                   }
+                   else {
+                       console.log("ERROR. Returning empty object.")
+                       return {};
+                   }
                });
-               return res;
+              
+                return res;
             }
          },
 

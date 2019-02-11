@@ -19,7 +19,29 @@ let quoinexScheme = new Schema({
     status: String,
     updated: Boolean,
     quantity: String,
-    filled_quantity: String
+    filled_quantity: String,
+    disc_quantity: String,
+    iceberg_total_quantity: String,
+    price: String,
+    created_at: Number,
+    updated_at: Number,
+    leverage_level: Number,
+    source_exchange: String,
+    product_id: Number,
+    product_code: String,
+    funding_currency: String,
+    currency_pair_code: String,
+    order_fee: String,
+    margin_used: String,
+    margin_interest: String,
+    executions: {
+        id: Number,
+        quantity: String,
+        price: String,
+        taker_side: String,
+        my_side: String,
+        created_at: Number
+    }
 }, { versionKey: false }, { _id : false });
 quoinexScheme.methods.getQuantity = function() {
     return this.quantity;
