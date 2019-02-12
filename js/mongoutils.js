@@ -12,6 +12,8 @@ const options = {
     pass: config.get('mongodb.pwd')
 };
 
+// LIQUID/QUOINEX
+
 let quoinexScheme = new Schema({
     id : String,
     order_type: String,
@@ -65,6 +67,24 @@ bitfinexScheme.methods.getOriginalAmount = function(){
 };
 let bitfinexOrder = Mongoose.model('bitfinexOrders', bitfinexScheme);
 
+// Bitstamp
+let bitstampScheme = new Schema({
+    status: String,
+    transactions: [
+        {
+            tid: String,
+            usd: String,
+            price: String,
+            fee: String,
+            btc: String,
+            datetime: String,
+            type: Number
+        }
+    ]
+});
+
+let bitstampOrder = Mongoose.model('bitstampOrders', bitstampScheme);
+
 module.exports = {
     initMongoConnection : async () => {
         Mongoose.connect(mongoUrl + '/' + mongoDatabase, options);
@@ -79,5 +99,6 @@ module.exports = {
         }).on('error', () => new Error('failed to disconnect properly'));
     },
     quoinexOrder : quoinexOrder,
-    bitfinexOrder : bitfinexOrder
+    bitfinexOrder : bitfinexOrder,
+    bitstampOrder : bitstampOrder
 };

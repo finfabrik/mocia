@@ -5,6 +5,7 @@ import routes from './routes';
 import anxpro from './anxpro';
 import bitfinex from './bitfinex';
 import quoinex from './quoinex';
+import bitstamp from './bitstamp';
 import config from 'config';
 import MongoUtils from './mongoutils';
 
@@ -36,6 +37,11 @@ const init = async () => {
         },
         {
             plugin: quoinex,
+            options: {
+            }
+        },
+        {
+            plugin: bitstamp,
             options: {
             }
         }
