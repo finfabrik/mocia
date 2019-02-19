@@ -43,8 +43,11 @@ const bitstampPlugin = {
                         btc_available:15.3,
                         xrp_available: 100.2,
                         xrp_balance: 100.2,
+                        eth_available: 1334.34,
+                        eth_balance: 1334.34,
                         btcusd_fee: 10,
                         xrpusd_fee: 2.34,
+                        ethusd_fee: 0.01,
                         fee: 15
                     };
 
