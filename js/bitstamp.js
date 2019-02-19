@@ -38,8 +38,13 @@ const bitstampPlugin = {
 
                     let response = {
                         usd_balance: 5000.50,
+                        usd_available: 5000.50,
                         btc_balance: 15.3,
+                        btc_available:15.3,
+                        xrp_available: 100.2,
+                        xrp_balance: 100.2,
                         btcusd_fee: 10,
+                        xrpusd_fee: 2.34,
                         fee: 15
                     };
 
